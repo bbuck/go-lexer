@@ -1,4 +1,4 @@
-// This package provides a Lexer that functions similarly to Rob Pike's discussion
+// Package lexer provides a lexer that functions similarly to Rob Pike's discussion
 // about lexer design in this [talk](https://www.youtube.com/watch?v=HxaD_trXwRE).
 //
 // You can define your token types by using the `lexer.TokenType` type (`int`) via
@@ -33,20 +33,34 @@ import (
 	"unicode/utf8"
 )
 
+// StateFunc defines the current state of the lexer. For examample, let's say
+// That you encounter a '"' mark. You should now (depending on your grammar)
+// call the state function corresponding to parsing a string, which will
+// continue to consume runes until it sees the next '"' or encountes some
+// error.
 type StateFunc func(*L) StateFunc
 
+// TokenType is a way to enumerate the various possible types of unique
+// tokens which we wish to lex, such as strings, numbers, dots, parens, etc.
 type TokenType int
 
-const (
-	EOFRune    rune      = -1
-	EmptyToken TokenType = 0
-)
+// EOFRune is a special rune to denote the end of a file
+const EOFRune rune = -1
 
+// Token is a "thing" that was lexed. This "thing" will be defined as one of
+// the token types that a user of this library will define. For example, a
+// common item to lex is an interger. The value of a token is the string
+// representation of the token. So for an integer, say 123, the Value would
+// be "123".
 type Token struct {
 	Type  TokenType
 	Value string
 }
 
+// L is the lexer, the main data stricture of this library. It is responsible
+// for parsing a string passed to it, the source, and emitting tokens of
+// what it finds on a channel. For a complete description, please view the
+// video described above.
 type L struct {
 	source          string
 	start, position int
@@ -79,6 +93,7 @@ func (l *L) Start() {
 	go l.run()
 }
 
+// StartSync begins executing the Lexer in an synchronously
 func (l *L) StartSync() {
 	// Take half the string length as a buffer size.
 	buffSize := len(l.source) / 2
@@ -156,7 +171,7 @@ func (l *L) Next() rune {
 	return r
 }
 
-// Take receives a string containing all acceptable strings and will contine
+// Take receives a string containing all acceptable strings and will continue
 // over each consecutive character in the source until a token not in the given
 // string is encountered. This should be used to quickly pull token parts.
 func (l *L) Take(chars string) {
@@ -172,9 +187,8 @@ func (l *L) Take(chars string) {
 func (l *L) NextToken() (*Token, bool) {
 	if tok, ok := <-l.tokens; ok {
 		return &tok, false
-	} else {
-		return nil, true
 	}
+	return nil, true
 }
 
 // Partial yyLexer implementation

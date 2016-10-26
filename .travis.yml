@@ -1,0 +1,16 @@
+language: go
+go:
+- 1.4
+- 1.5
+- 1.6
+- 1.7
+- release
+- tip
+
+before_script:
+- go fmt
+- go vet
+
+script:
+- go test -v
+
