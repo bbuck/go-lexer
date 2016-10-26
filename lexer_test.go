@@ -1,19 +1,17 @@
-package lexer_test
+package lexer
 
 import (
 	"fmt"
 	"testing"
-
-	"github.com/bbuck/go-lexer"
 )
 
 const (
-	NumberToken lexer.TokenType = iota
+	NumberToken TokenType = iota
 	OpToken
 	IdentToken
 )
 
-func NumberState(l *lexer.L) lexer.StateFunc {
+func NumberState(l *L) StateFunc {
 	l.Take("0123456789")
 	l.Emit(NumberToken)
 	if l.Peek() == '.' {
@@ -25,7 +23,7 @@ func NumberState(l *lexer.L) lexer.StateFunc {
 	return nil
 }
 
-func IdentState(l *lexer.L) lexer.StateFunc {
+func IdentState(l *L) StateFunc {
 	r := l.Next()
 	for (r >= 'a' && r <= 'z') || r == '_' {
 		r = l.Next()
@@ -36,9 +34,9 @@ func IdentState(l *lexer.L) lexer.StateFunc {
 	return WhitespaceState
 }
 
-func WhitespaceState(l *lexer.L) lexer.StateFunc {
+func WhitespaceState(l *L) StateFunc {
 	r := l.Next()
-	if r == lexer.EOFRune {
+	if r == EOFRune {
 		return nil
 	}
 
@@ -53,8 +51,8 @@ func WhitespaceState(l *lexer.L) lexer.StateFunc {
 	return NumberState
 }
 
-func Test_LexerMovingThroughString(t *testing.T) {
-	l := lexer.New("123", nil)
+func Test_MovingThroughString(t *testing.T) {
+	l := New("123", nil)
 	run := []struct {
 		s string
 		r rune
@@ -62,7 +60,7 @@ func Test_LexerMovingThroughString(t *testing.T) {
 		{"1", '1'},
 		{"12", '2'},
 		{"123", '3'},
-		{"123", lexer.EOFRune},
+		{"123", EOFRune},
 	}
 
 	for _, test := range run {
@@ -80,7 +78,7 @@ func Test_LexerMovingThroughString(t *testing.T) {
 }
 
 func Test_LexingNumbers(t *testing.T) {
-	l := lexer.New("123", NumberState)
+	l := New("123", NumberState)
 	l.Start()
 	tok, done := l.NextToken()
 	if done {
@@ -105,13 +103,13 @@ func Test_LexingNumbers(t *testing.T) {
 	}
 
 	if tok != nil {
-		t.Error("Expected a nil token, but got %v", *tok)
+		t.Errorf("Expected a nil token, but got %v", *tok)
 		return
 	}
 }
 
-func Test_LexerRewind(t *testing.T) {
-	l := lexer.New("1", nil)
+func Test_Rewind(t *testing.T) {
+	l := New("1", nil)
 	r := l.Next()
 	if r != '1' {
 		t.Errorf("Expected %q but got %q", '1', r)
@@ -132,7 +130,7 @@ func Test_LexerRewind(t *testing.T) {
 
 func Test_MultipleTokens(t *testing.T) {
 	cases := []struct {
-		tokType lexer.TokenType
+		tokType TokenType
 		val     string
 	}{
 		{NumberToken, "123"},
@@ -143,7 +141,7 @@ func Test_MultipleTokens(t *testing.T) {
 		{IdentToken, "world"},
 	}
 
-	l := lexer.New("123.hello  675.world", NumberState)
+	l := New("123.hello  675.world", NumberState)
 	l.Start()
 
 	for _, c := range cases {
@@ -176,8 +174,8 @@ func Test_MultipleTokens(t *testing.T) {
 	}
 }
 
-func Test_LexerError(t *testing.T) {
-	l := lexer.New("1", WhitespaceState)
+func Test_Error(t *testing.T) {
+	l := New("1", WhitespaceState)
 	l.ErrorHandler = func(e string) {}
 	l.Start()
 

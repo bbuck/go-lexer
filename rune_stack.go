@@ -26,11 +26,10 @@ func (s *runeStack) push(r rune) {
 func (s *runeStack) pop() rune {
 	if s.start == nil {
 		return EOFRune
-	} else {
-		n := s.start
-		s.start = n.next
-		return n.r
 	}
+	n := s.start
+	s.start = n.next
+	return n.r
 }
 
 func (s *runeStack) clear() {
