@@ -105,7 +105,7 @@ func Test_LexingNumbers(t *testing.T) {
 	}
 
 	if tok != nil {
-		t.Error("Expected a nil token, but got %v", *tok)
+		t.Errorf("Expected a nil token, but got %v", *tok)
 		return
 	}
 }
